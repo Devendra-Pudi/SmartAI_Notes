@@ -1,16 +1,32 @@
+---
+title: SmartAI Notes
+emoji: 🧠
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+sdk_version: 5.9.1
+app_file: app.py
+pinned: true
+license: mit
+short_description: RAG-powered Document Q&A — Upload files, ask questions, get cited answers
+---
+
 <div align="center">
 
 # 🧠 SmartAI Notes
 ### RAG-powered Document Intelligence — Ask anything about your files
 
+[![Gradio](https://img.shields.io/badge/Gradio-5.x-FF4B4B?style=for-the-badge&logo=gradio&logoColor=white)](https://gradio.app)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io)
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-7c3aed?style=for-the-badge)](https://trychroma.com)
 [![OpenRouter](https://img.shields.io/badge/OpenRouter-LLM%20Gateway-0f172a?style=for-the-badge)](https://openrouter.ai)
+[![HuggingFace](https://img.shields.io/badge/🤗%20Spaces-Deployed-yellow?style=for-the-badge)](https://huggingface.co/spaces/Devendra-Pudi/SmartAI-Notes)
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-> *Upload your PDFs, docs, and notes — then have a conversation with them using state-of-the-art LLMs.*
+> *Upload your PDFs, docs, and notes — then have a conversation with them using state-of-the-art LLMs. Entirely free.*
+
+**[🚀 Try it Live on HuggingFace Spaces](https://huggingface.co/spaces/Devendra-Pudi/SmartAI-Notes)**
 
 </div>
 
@@ -18,42 +34,45 @@
 
 ## 📖 Overview
 
-**SmartAI Notes** is a full-stack **Retrieval-Augmented Generation (RAG)** application that lets you upload documents in multiple formats and ask natural language questions about them. The system retrieves the most semantically relevant passages using **ChromaDB** vector search and generates accurate, cited answers using **LLMs via OpenRouter** (Llama, Mistral, Gemma, DeepSeek, and more).
+**SmartAI Notes** is a full-stack **Retrieval-Augmented Generation (RAG)** application deployed on **HuggingFace Spaces**. Upload documents in multiple formats and have a natural language conversation with them. The system finds the most semantically relevant passages using **ChromaDB** vector search and generates accurate, cited answers via **OpenRouter LLMs** (Llama, Mistral, Gemma, DeepSeek — all free).
+
+The entire stack — Gradio UI + FastAPI backend + ChromaDB + embeddings — runs in a **single HuggingFace Space** at zero cost.
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        RAG Pipeline                              │
-│                                                                  │
-│  📄 Document Upload                                              │
-│       │                                                          │
-│       ▼                                                          │
-│  📝 Document Processor   ←── PDF / TXT / MD / DOCX / CSV / JSON │
-│       │  (parse + chunk)                                         │
-│       ▼                                                          │
-│  🔢 SentenceTransformer  ←── all-MiniLM-L6-v2 (local, free)    │
-│       │  (embed chunks)                                          │
-│       ▼                                                          │
-│  🗄️  ChromaDB            ←── Persistent vector store            │
-│       │  (store embeddings)                                      │
-│                                                                  │
-│  💬 User Question                                                │
-│       │                                                          │
-│       ▼                                                          │
-│  🔢 SentenceTransformer  (embed question)                        │
-│       │                                                          │
-│       ▼                                                          │
-│  🗄️  ChromaDB Query      (cosine similarity → top-K chunks)     │
-│       │                                                          │
-│       ▼                                                          │
-│  🤖 OpenRouter LLM       ←── Llama / Mistral / Gemma / DeepSeek │
-│       │  (RAG prompt + context → answer)                        │
-│       ▼                                                          │
-│  📤 Cited Answer + Sources                                       │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                  HuggingFace Space (Single Process)                  │
+│                                                                      │
+│   ┌─────────────────┐    internal    ┌──────────────────────────┐   │
+│   │   Gradio UI     │ ─────calls──►  │     FastAPI Backend       │   │
+│   │  (port 7860)    │                │   /api/* endpoints        │   │
+│   │                 │                │                           │   │
+│   │  💬 Chat tab    │                │  ┌────────────────────┐   │   │
+│   │  📄 Docs tab    │                │  │  DocumentProcessor │   │   │
+│   │  🔌 API tab     │                │  │  (PDF/TXT/DOCX...) │   │   │
+│   └─────────────────┘                │  └────────┬───────────┘   │   │
+│                                      │           │               │   │
+│                                      │  ┌────────▼───────────┐   │   │
+│                                      │  │  SentenceTransfor  │   │   │
+│                                      │  │  mer Embeddings    │   │   │
+│                                      │  │  (local, free)     │   │   │
+│                                      │  └────────┬───────────┘   │   │
+│                                      │           │               │   │
+│                                      │  ┌────────▼───────────┐   │   │
+│                                      │  │   ChromaDB         │   │   │
+│                                      │  │   (persistent disk)│   │   │
+│                                      │  └────────────────────┘   │   │
+│                                      └──────────────────────────┘   │
+│                                                   │                  │
+│                                          OpenRouter API              │
+│                                     (Llama / Mistral / Gemma...)     │
+└─────────────────────────────────────────────────────────────────────┘
+
+                    Optional: HF Dataset repo for cross-restart
+                              ChromaDB persistence
 ```
 
 ---
@@ -63,129 +82,145 @@
 | Feature | Details |
 |---------|---------|
 | 📄 **Multi-format** | PDF, TXT, Markdown, DOCX, CSV, JSON |
-| 🔍 **Semantic Search** | ChromaDB + SentenceTransformer embeddings (local, no API cost) |
-| 🤖 **Multiple LLMs** | Llama 3.3, Mistral 7B, Gemma 3, DeepSeek R1, Qwen 2.5 — all free via OpenRouter |
-| 💬 **Chat History** | Multi-turn conversations with memory |
-| ⚡ **Streaming** | Token-by-token streaming responses |
-| 📚 **Source Citations** | Every answer cites the source document and page |
-| 🗂️ **Document Management** | Upload, list, filter, and delete indexed documents |
-| 🎨 **Beautiful UI** | Dark-mode Streamlit interface with chat bubbles |
-| 🐳 **Docker Ready** | One-command startup with Docker Compose |
-| 🔧 **FastAPI Backend** | Full REST API with Swagger docs at `/docs` |
+| 🔍 **Semantic Search** | ChromaDB + local SentenceTransformer (no API cost) |
+| 🤖 **6 Free LLMs** | Llama 3.3, Mistral 7B, Gemma 3, DeepSeek R1, Qwen 2.5 via OpenRouter |
+| 💬 **Streaming** | Real-time token-by-token response rendering |
+| 📚 **Source Citations** | Every answer cites document + page number |
+| 🗂️ **Document Management** | Upload, list, filter by document, delete |
+| 💾 **Persistence** | Optional HF Dataset backup for cross-restart ChromaDB survival |
+| 🔌 **REST API** | Full FastAPI backend with Swagger UI at `/api/docs` |
+| 🐳 **Local Dev** | Run locally with a single command |
+| 🎨 **Dark UI** | Beautiful dark-mode Gradio interface |
 
 ---
 
-## 🛠️ Tech Stack
+## 🚀 Deploy to HuggingFace Spaces
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Frontend** | Streamlit | Interactive chat UI |
-| **Backend** | FastAPI | REST API server |
-| **Vector DB** | ChromaDB (persistent) | Semantic document storage |
-| **Embeddings** | SentenceTransformer `all-MiniLM-L6-v2` | Local text embeddings |
-| **LLM Gateway** | OpenRouter API | Access to 50+ LLMs |
-| **LLMs** | Llama 3.3, Mistral, Gemma, DeepSeek | Answer generation |
-| **Doc Parsing** | pypdf, python-docx | Multi-format document parsing |
-| **Containerization** | Docker + Docker Compose | Easy deployment |
+### Option A — Fork this Space (Easiest)
+1. Go to this Space on HuggingFace
+2. Click **"Duplicate this Space"**
+3. Add your `OPENROUTER_API_KEY` in Space **Settings → Secrets**
+4. Done! 🎉
 
----
-
-## 🚀 Quick Start
-
-### Option 1 — Docker (Recommended)
+### Option B — Deploy from GitHub
 
 ```bash
-# Clone the repo
+# 1. Clone this repo
 git clone https://github.com/Devendra-Pudi/SmartAI_Notes.git
 cd SmartAI_Notes
 
-# Set your OpenRouter API key
-cp .env.example .env
-# Edit .env → add your OPENROUTER_API_KEY
+# 2. Create a new HuggingFace Space
+#    → huggingface.co/new-space
+#    → SDK: Gradio
+#    → Name: SmartAI-Notes
 
-# Start everything
-docker compose up --build
+# 3. Add HF remote
+git remote add hf https://huggingface.co/spaces/Devendra-Pudi/SmartAI-Notes
 
-# Open in browser
-# Frontend: http://localhost:8501
-# API Docs:  http://localhost:8000/docs
+# 4. Push
+git push hf main
 ```
 
-### Option 2 — Manual Setup
+**5. Add secrets in Space Settings:**
 
-**1. Backend**
+| Secret Key | Value |
+|------------|-------|
+| `OPENROUTER_API_KEY` | `sk-or-v1-...` (from openrouter.ai) |
+| `HF_TOKEN` | *(optional)* HF write token for persistence |
+| `HF_DATASET_REPO` | *(optional)* `your-username/smartai-db` |
+| `USE_HF_PERSISTENCE` | `true` *(optional)* |
+
+---
+
+## 💾 ChromaDB Persistence (Cross-Restart)
+
+HF Spaces free tier uses **ephemeral storage** — data is lost on restart. SmartAI Notes solves this with optional **HF Dataset backup**:
+
+```
+On startup  → Pull chroma_db.tar.gz from your HF Dataset repo
+On shutdown → Push chroma_db.tar.gz back to your HF Dataset repo
+```
+
+**Setup:**
+1. Create a **private** HF Dataset repo: `your-username/smartai-notes-db`
+2. Generate an HF token with **write** access at `huggingface.co/settings/tokens`
+3. Add `HF_TOKEN`, `HF_DATASET_REPO`, `USE_HF_PERSISTENCE=true` to Space secrets
+
+Without this, documents must be re-uploaded after each Space restart.
+
+---
+
+## 🖥️ Run Locally
+
 ```bash
-cd backend
-
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+git clone https://github.com/Devendra-Pudi/SmartAI_Notes.git
+cd SmartAI_Notes
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure environment
-cp ../.env.example .env
+# Configure
+cp .env.example .env
 # Edit .env → add OPENROUTER_API_KEY
 
-# Start FastAPI server
-uvicorn main:app --reload --port 8000
-```
+# Launch (Gradio + FastAPI together on port 7860)
+python app.py
 
-**2. Frontend** (new terminal)
-```bash
-cd frontend
-pip install -r requirements.txt
-streamlit run app.py
+# Open: http://localhost:7860
+# API:  http://localhost:7860/api/docs
 ```
-
-**3. Open your browser**
-- 🎨 **Streamlit App**: http://localhost:8501
-- 📖 **API Docs**: http://localhost:8000/docs
 
 ---
 
 ## 🔑 Getting Your OpenRouter API Key
 
-1. Go to **[openrouter.ai](https://openrouter.ai)**
-2. Sign up (free)
-3. Navigate to **Keys** → Create new key
-4. Copy and paste into `.env` or the Streamlit sidebar
+1. Visit **[openrouter.ai](https://openrouter.ai)**
+2. Sign up — no credit card needed
+3. Go to **Keys** → **Create key**
+4. Paste it into the **🔑 API Key** field in the app sidebar
 
-> 💡 All models marked `(Free)` work with **$0 credits**. No billing required.
+> 💡 All models marked **(Free)** work with **$0 balance**. You get intelligent answers at zero cost.
+
+---
+
+## 🤖 Available LLM Models
+
+| Model | Provider | Context | Cost |
+|-------|---------|---------|------|
+| Llama 3.3 8B Instruct | Meta | 131K | ✅ Free |
+| Llama 3.1 70B Instruct | Meta | 131K | ✅ Free |
+| Mistral 7B Instruct | Mistral AI | 32K | ✅ Free |
+| Gemma 3 4B Instruct | Google | 131K | ✅ Free |
+| DeepSeek R1 | DeepSeek | 163K | ✅ Free |
+| Qwen 2.5 72B Instruct | Alibaba | 131K | ✅ Free |
+| GPT-4o Mini | OpenAI | 128K | 💳 Paid |
+| Claude 3 Haiku | Anthropic | 200K | 💳 Paid |
 
 ---
 
 ## 📡 API Reference
 
-### Upload a Document
-```bash
-curl -X POST http://localhost:8000/api/v1/documents/upload \
-  -F "file=@your_document.pdf"
-```
+The FastAPI backend is fully accessible:
 
-### Ask a Question
 ```bash
-curl -X POST http://localhost:8000/api/v1/query/ \
+# Upload document
+curl -X POST https://your-space.hf.space/api/documents/upload \
+  -F "file=@report.pdf"
+
+# Ask a question
+curl -X POST https://your-space.hf.space/api/query \
   -H "Content-Type: application/json" \
-  -d '{
-    "question": "What are the key findings?",
-    "top_k": 5,
-    "model": "meta-llama/llama-3.3-8b-instruct:free"
-  }'
-```
+  -d '{"question": "What are the key findings?", "top_k": 5}'
 
-### List Documents
-```bash
-curl http://localhost:8000/api/v1/documents/
-```
+# List documents
+curl https://your-space.hf.space/api/documents
 
-### Delete a Document
-```bash
-curl -X DELETE http://localhost:8000/api/v1/documents/{file_id}
-```
+# Health check
+curl https://your-space.hf.space/api/health
 
-Full interactive API docs: **http://localhost:8000/docs**
+# Swagger UI
+open https://your-space.hf.space/api/docs
+```
 
 ---
 
@@ -193,67 +228,44 @@ Full interactive API docs: **http://localhost:8000/docs**
 
 ```
 SmartAI_Notes/
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── upload.py       # File upload endpoints
-│   │   │   ├── query.py        # RAG query endpoints
-│   │   │   └── health.py       # Health check
-│   │   ├── core/
-│   │   │   ├── config.py       # Settings & environment
-│   │   │   └── logger.py       # Logging setup
-│   │   ├── models/
-│   │   │   └── schemas.py      # Pydantic schemas
-│   │   └── services/
-│   │       ├── document_processor.py  # Parse & chunk documents
-│   │       ├── vector_store.py        # ChromaDB operations
-│   │       ├── llm_service.py         # OpenRouter LLM calls
-│   │       └── rag_pipeline.py        # Orchestrates RAG flow
-│   ├── main.py                 # FastAPI app entry point
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/
-│   ├── app.py                  # Streamlit UI
-│   ├── requirements.txt
-│   └── Dockerfile
-├── tests/
-│   └── test_rag.py             # Unit tests
-├── docker-compose.yml
-├── .env.example
-├── .gitignore
-└── README.md
+├── app.py                          # 🚀 Entry point — Gradio + FastAPI mounted together
+├── requirements.txt                # All dependencies
+├── .env.example                    # Environment variable template
+├── README.md                       # This file (also HF Space card)
+│
+├── app/
+│   ├── core/
+│   │   ├── config.py               # Settings via env vars / HF Secrets
+│   │   ├── logger.py               # Structured logging
+│   │   └── persistence.py          # HF Dataset ChromaDB backup
+│   ├── models/
+│   │   └── schemas.py              # Pydantic request/response models
+│   ├── services/
+│   │   ├── document_processor.py   # Parse & chunk PDF/TXT/DOCX/CSV/JSON
+│   │   ├── vector_store.py         # ChromaDB CRUD + semantic search
+│   │   ├── llm_service.py          # OpenRouter API + streaming
+│   │   └── rag_pipeline.py         # Orchestrate full RAG flow
+│   └── api/
+│       └── routes.py               # All FastAPI endpoints
+│
+└── tests/
+    └── test_rag.py                 # Unit tests
 ```
-
----
-
-## 🤖 Available LLM Models (via OpenRouter)
-
-| Model | Provider | Context | Free |
-|-------|---------|---------|------|
-| Llama 3.3 8B Instruct | Meta | 131K | ✅ |
-| Llama 3.1 70B Instruct | Meta | 131K | ✅ |
-| Mistral 7B Instruct | Mistral AI | 32K | ✅ |
-| Gemma 3 4B Instruct | Google | 131K | ✅ |
-| DeepSeek R1 | DeepSeek | 163K | ✅ |
-| Qwen 2.5 72B Instruct | Alibaba | 131K | ✅ |
-| GPT-4o Mini | OpenAI | 128K | 💳 |
-| Claude 3 Haiku | Anthropic | 200K | 💳 |
 
 ---
 
 ## 🧪 Running Tests
 
 ```bash
-cd backend
 pip install pytest
-pytest ../tests/ -v
+pytest tests/ -v
 ```
 
 ---
 
 ## 📄 License
 
-Licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
@@ -262,5 +274,7 @@ Licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
 Built with 🧠 by [Devendra Prasad Pudi](https://github.com/Devendra-Pudi)
 
 ⭐ **Star this repo if you found it useful!**
+
+**[🚀 Try it Live](https://huggingface.co/spaces/Devendra-Pudi/SmartAI-Notes)** · **[📖 GitHub](https://github.com/Devendra-Pudi/SmartAI_Notes)**
 
 </div>

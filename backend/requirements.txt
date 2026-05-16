@@ -1,0 +1,25 @@
+# FastAPI & server
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.12
+httpx==0.27.2
+
+# Configuration
+pydantic==2.9.2
+pydantic-settings==2.6.1
+
+# Vector store
+chromadb==0.5.20
+
+# Embeddings
+sentence-transformers==3.3.1
+torch==2.5.1
+torchvision==0.20.1
+
+# Document parsing
+pypdf==5.1.0
+python-docx==1.1.2
+
+# Utilities
+python-dotenv==1.0.1
+aiofiles==24.1.0
